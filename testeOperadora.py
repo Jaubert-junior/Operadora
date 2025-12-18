@@ -1,5 +1,5 @@
 import pytest 
-from operadora import TipoDePlano, PlanoControle, PlanoPosPago, LinhaTelefonica, FaturaMensal
+from operadora import TipoDePlano, PlanoControle, PlanoPosPago, LinhaTelefonica, FaturaMensal, OperadoraDeTelefonia
 
 class TestTiposDePlano:
     def test_plano_controle_calculo_fatura(self):
@@ -45,43 +45,49 @@ class TestLinhaTelefonica:
         with pytest.raises(Exception, match="Nenhum plano associado à linha telefônica."):
             linha.calcular_fatura(minutos_consumidos=10, dados_consumidos=20)
 
+class TestOperadoraDeTelefonia:
+    def test_instanciacao(self):
+        operadora = OperadoraDeTelefonia()
+        assert operadora.linhas_telefonicas == []
+        assert operadora.historico_faturas == []
+
+    def test_adicionar_linha_telefonica(self):
+        operadora = OperadoraDeTelefonia()
+        linha = LinhaTelefonica("1111-2222", "4G")
+        operadora.adicionar_linha_telefonica(linha)
+        assert linha in operadora.linhas_telefonicas
+
+    def test_adicionar_linha_invalida(self):
+        operadora = OperadoraDeTelefonia()
+        with pytest.raises(Exception, match="Linha inválida. Informe uma instância de LinhaTelefonica."):
+            operadora.adicionar_linha_telefonica("string_invalida")
+    
+    def test_gerar_faturamento_mensal(self):
+        operadora = OperadoraDeTelefonia()
+        linha = LinhaTelefonica("1111-2222", "4G")
+        plano = PlanoControle("Controle Teste", 50.00)
+        linha.associar_plano(plano)
+
 class TestFaturaMensal:
-    def setup_method(self):
-        self.plano_controle = PlanoControle("Controle Fatura", 70.00)
-        self.plano_pos = PlanoPosPago("Pós Fatura", 120.00)
-        self.linha_com_controle = LinhaTelefonica("3333-4444", "4G")
-        self.linha_com_controle.associar_plano(self.plano_controle)
-        self.linha_com_pos = LinhaTelefonica("5555-6666", "5G")
-        self.linha_com_pos.associar_plano(self.plano_pos)
-        self.linha_sem_plano = LinhaTelefonica("7777-8888", "4G")
-
     def test_instanciacao_e_propriedades(self):
-        fatura = FaturaMensal("FAT003", self.linha_com_controle, "Julho", 2023, 0, 0)
-        assert fatura.id_fatura == "FAT003"
-        assert fatura.linha_telefonica == self.linha_com_controle
-        assert fatura.mes == "Julho"
-        assert fatura.ano == 2023
-        assert fatura.minutos_consumidos == 0
-        assert fatura.dados_consumidos == 0
+        linha = LinhaTelefonica("1111-2222", "4G")
+        fatura = FaturaMensal(linha, 75.00)
+        assert fatura.linha_telefonica == linha
+        assert fatura.valor_total == 75.00
+    
+    def test_calcular_valor_total(self):
+        linha = LinhaTelefonica("1111-2222", "4G")
+        fatura = FaturaMensal(linha, 75.00)
+        assert fatura.calcular_valor_total() == 75.00   
 
-    def test_registrar_consumo(self):
-        fatura = FaturaMensal("FAT004", self.linha_com_controle, "Agosto", 2023)
-        fatura.registrar_consumo(minutos=50, dados=100)
-        assert fatura.minutos_consumidos == 50
-        assert fatura.dados_consumidos == 100
-        fatura.registrar_consumo(minutos=20, dados=30)
-        assert fatura.minutos_consumidos == 70
-        assert fatura.dados_consumidos == 130
+    def test_fatura_com_valor_zero(self):
+        linha = LinhaTelefonica("1111-2222", "4G")
+        fatura = FaturaMensal(linha, 0.00)
+        assert fatura.calcular_valor_total() == 0.00    
 
-    def test_calcular_valor_total_plano_controle(self):
-        fatura = FaturaMensal("FAT005", self.linha_com_controle, "Setembro", 2023, 50, 100)
-        assert fatura.calcular_valor_total() == 145.00
-
-    def test_calcular_valor_total_plano_pos_pago(self):
-        fatura = FaturaMensal("FAT006", self.linha_com_pos, "Outubro", 2023, 100, 500)
-        assert fatura.calcular_valor_total() == 216.00
-
-    def test_calcular_valor_total_sem_plano_na_linha(self):
-        fatura = FaturaMensal("FAT007", self.linha_sem_plano, "Novembro", 2023)
-        with pytest.raises(ValueError, match=f"A linha {self.linha_sem_plano.numero} não possui um plano ativo para calcular a fatura."):
-            fatura.calcular_valor_total()
+    def test_exibir_resumo(self):
+        linha = LinhaTelefonica("1111-2222", "4G")
+        fatura = FaturaMensal(linha, 75.00)
+        resumo = fatura.exibir_resumo()
+        assert resumo == "Fatura Mensal - Linha: 1111-2222, Valor Total: R$ 75.00"
+        
