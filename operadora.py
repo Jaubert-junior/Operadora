@@ -77,13 +77,13 @@ class OperadoraDeTelefonia:
 
     def adicionar_linha_telefonica(self, linha):
         if not isinstance(linha, LinhaTelefonica):
-            raise Exception("Linha inválida. Informe uma instância de LinhaTelefonica.")
+            raise Exception("Linha inválida. Informe uma linha que seja um instância de LinhaTelefonica.")
         self.__linhas_telefonicas.append(linha)
         print(f"Linha {linha.numero} adicionada à operadora.")
 
     def registrar_fatura(self, fatura):
         if not isinstance(fatura, FaturaMensal):
-            raise Exception("Fatura inválida. Informe uma instância de FaturaMensal.")
+            raise Exception("Fatura inválida. Informe uma fatura que seja instância de FaturaMensal.")
         self.__historico_faturas.append(fatura)
 
     def faturamento_total(self):
