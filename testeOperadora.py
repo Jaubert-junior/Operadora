@@ -69,7 +69,7 @@ class TestOperadoraDeTelefonia:
         linha.associar_plano(plano)
 
 class TestFaturaMensal:
-    def test_instanciacao_e_propriedades(self):
+    def test_instanciacao(self):
         linha = LinhaTelefonica("1111-2222", "4G")
         fatura = FaturaMensal(linha, 75.00)
         assert fatura.linha_telefonica == linha
